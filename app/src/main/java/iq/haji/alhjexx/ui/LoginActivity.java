@@ -17,6 +17,7 @@ import iq.haji.alhjexx.core.AppException;
 import iq.haji.alhjexx.data.Settings;
 import iq.haji.alhjexx.data.UserRepo;
 import iq.haji.alhjexx.model.User;
+import iq.haji.alhjexx.security.PinGuard;
 import iq.haji.alhjexx.security.Session;
 
 /**
@@ -113,11 +114,17 @@ public class LoginActivity extends Activity {
         final EditText pin = Ui.pin(this, "الرمز");
         f.addView(pin);
         Ui.showForm(this, u.name, f, "دخول", () -> {
+            if (PinGuard.secondsLocked() > 0) {
+                pin.setError(PinGuard.lockedMessage());
+                return false;
+            }
             if (!users.verify(u.id, pin.getText().toString())) {
-                pin.setError("الرمز غير صحيح");
+                PinGuard.failure();
+                pin.setError(PinGuard.secondsLocked() > 0 ? PinGuard.lockedMessage() : "الرمز غير صحيح");
                 pin.setText("");
                 return false;
             }
+            PinGuard.success();
             Session.login(users.get(u.id));
             openMain();
             return true;

@@ -6,6 +6,7 @@ import android.widget.LinearLayout;
 
 import iq.haji.alhjexx.data.UserRepo;
 import iq.haji.alhjexx.model.User;
+import iq.haji.alhjexx.security.PinGuard;
 import iq.haji.alhjexx.security.Session;
 
 /** طلب موافقة مدير للعمليات الحساسة. المدير المسجّل دخوله لا يُطلب منه الرمز مجدداً. */
@@ -30,13 +31,19 @@ public final class Auth {
         final EditText pin = Ui.pin(c, "رمز المدير");
         f.addView(pin, Ui.lp(c, LinearLayout.LayoutParams.MATCH_PARENT, LinearLayout.LayoutParams.WRAP_CONTENT, 12));
         Ui.showForm(c, "موافقة المدير", f, "تأكيد", () -> {
+            if (PinGuard.secondsLocked() > 0) {
+                pin.setError(PinGuard.lockedMessage());
+                return false;
+            }
             User m = new UserRepo(c).findManagerByPin(pin.getText().toString());
             if (m == null) {
                 // رسالة عامة لا تكشف أي معلومات عن الرموز أو المستخدمين.
-                pin.setError("الرمز غير صحيح");
+                PinGuard.failure();
+                pin.setError(PinGuard.secondsLocked() > 0 ? PinGuard.lockedMessage() : "الرمز غير صحيح");
                 pin.setText("");
                 return false;
             }
+            PinGuard.success();
             onOk.granted(m);
             return true;
         });
