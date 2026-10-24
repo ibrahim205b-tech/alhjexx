@@ -31,6 +31,10 @@ android {
             includeAndroidResources = true
             all {
                 maxHeapSize = '2048m'
+                testLogging {
+                    events 'passed', 'failed', 'skipped'
+                    exceptionFormat 'full'
+                }
             }
         }
     }
