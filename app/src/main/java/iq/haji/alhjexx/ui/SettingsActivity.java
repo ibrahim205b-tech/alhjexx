@@ -287,6 +287,7 @@ public class SettingsActivity extends PageActivity implements BtPrinter.Listener
             Ui.toast(this, "تم الحفظ");
         });
         toggle(c, "تفعيل تسجيل المصروفات النقدية في الوردية", Settings.EXPENSES_ENABLED, true);
+        toggle(c, "طباعة تقرير الوردية تلقائياً عند إغلاقها", Settings.SHIFT_AUTO_PRINT, false);
     }
 
     // ---------------- المستخدمون ----------------
@@ -296,6 +297,40 @@ public class SettingsActivity extends PageActivity implements BtPrinter.Listener
         c.addView(Ui.text(this, "إضافة كاشير أو مدير، تغيير الرموز، تعطيل المستخدمين. "
                 + "رموز PIN تُخزن مشفرة بتجزئة ولا تظهر في أي مكان.", 12, R.color.text_3, false));
         button(c, "إدارة المستخدمين ورموز PIN", true, () -> startActivity(new Intent(this, UsersActivity.class)));
+        button(c, "تغيير رمز المدير الحالي", false, this::changeOwnPin);
+    }
+
+    private void changeOwnPin() {
+        final iq.haji.alhjexx.model.User m = Session.manager();
+        if (m == null) {
+            return;
+        }
+        LinearLayout f = Ui.form(this);
+        final EditText old = Ui.pin(this, "الرمز الحالي");
+        final EditText pin = Ui.pin(this, "الرمز الجديد (4 - 8 أرقام)");
+        final EditText pin2 = Ui.pin(this, "تأكيد الرمز الجديد");
+        f.addView(old);
+        f.addView(pin, Ui.lp(this, LinearLayout.LayoutParams.MATCH_PARENT, LinearLayout.LayoutParams.WRAP_CONTENT, 8));
+        f.addView(pin2, Ui.lp(this, LinearLayout.LayoutParams.MATCH_PARENT, LinearLayout.LayoutParams.WRAP_CONTENT, 8));
+        final iq.haji.alhjexx.data.UserRepo users = new iq.haji.alhjexx.data.UserRepo(this);
+        Ui.showForm(this, "تغيير رمز " + m.name, f, getString(R.string.save), () -> {
+            if (!users.verify(m.id, old.getText().toString())) {
+                old.setError("الرمز الحالي غير صحيح");
+                return false;
+            }
+            if (!pin.getText().toString().equals(pin2.getText().toString())) {
+                pin2.setError("الرمزان غير متطابقين");
+                return false;
+            }
+            try {
+                users.changePin(m.id, pin.getText().toString(), Session.actor());
+                Ui.toast(this, "تم تغيير الرمز");
+                return true;
+            } catch (AppException e) {
+                pin.setError(e.getMessage());
+                return false;
+            }
+        });
     }
 
     // ---------------- النسخ الاحتياطي ----------------

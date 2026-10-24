@@ -24,6 +24,7 @@ public final class Settings {
     public static final String RECEIPT_COPIES = "receipt_copies";
     public static final String PRINT_FEED_LINES = "print_feed_lines";
     public static final String PRINT_CUT = "print_cut";
+    public static final String SHIFT_AUTO_PRINT = "shift_auto_print_on_close";
 
     public static final String DEFAULT_RESTAURANT_NAME = "مطعم الحجي";
     public static final String DEFAULT_FOOTER = "شكراً لزيارتكم";

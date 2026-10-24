@@ -300,7 +300,11 @@ public class ShiftActivity extends PageActivity {
                 final Shift closed = shifts.close(s.id, v, note.getText().toString(), byManager);
                 render();
                 showShiftPreviewOnly(closed);
-                Ui.confirm(this, "أُغلقت الوردية", "طباعة تقرير الوردية الآن؟", "طباعة", () -> print(closed));
+                if (settings.getBool(Settings.SHIFT_AUTO_PRINT, false)) {
+                    print(closed);
+                } else {
+                    Ui.confirm(this, "أُغلقت الوردية", "طباعة تقرير الوردية الآن؟", "طباعة", () -> print(closed));
+                }
                 return true;
             } catch (AppException e) {
                 Ui.error(this, e.getMessage());

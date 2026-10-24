@@ -1,6 +1,6 @@
 <?xml version="1.0" encoding="utf-8"?>
 <resources>
-    <style name="Haji.Btn">
+    <style name="Haji.Btn" parent="">
         <item name="android:layout_height">@dimen/btn_h</item>
         <item name="android:minHeight">@dimen/btn_h</item>
         <item name="android:gravity">center</item>
@@ -26,18 +26,18 @@
         <item name="android:textColor">@color/text</item>
     </style>
 
-    <style name="Haji.Title">
+    <style name="Haji.Title" parent="">
         <item name="android:textColor">@color/text</item>
         <item name="android:textSize">16sp</item>
         <item name="android:textStyle">bold</item>
     </style>
 
-    <style name="Haji.Caption">
+    <style name="Haji.Caption" parent="">
         <item name="android:textColor">@color/text_3</item>
         <item name="android:textSize">12sp</item>
     </style>
 
-    <style name="Haji.Chip">
+    <style name="Haji.Chip" parent="">
         <item name="android:layout_height">34dp</item>
         <item name="android:gravity">center</item>
         <item name="android:paddingStart">12dp</item>
