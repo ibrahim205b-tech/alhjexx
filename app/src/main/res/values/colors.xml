@@ -1,0 +1,21 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <!-- هوية مطعم الحجي: أسود، كحلي داكن، أحمر، أبيض، ودرجات رمادية -->
+    <color name="black">#0A0C11</color>
+    <color name="navy">#0F1729</color>
+    <color name="navy_2">#152038</color>
+    <color name="surface">#1A2642</color>
+    <color name="surface_2">#223152</color>
+    <color name="stroke">#2C3B5E</color>
+    <color name="red">#D0142C</color>
+    <color name="red_dark">#A00E22</color>
+    <color name="red_soft">#3A1520</color>
+    <color name="white">#FFFFFF</color>
+    <color name="text">#F2F4F8</color>
+    <color name="text_2">#B4BCCC</color>
+    <color name="text_3">#7C869A</color>
+    <color name="success">#34B67E</color>
+    <color name="warning">#F0B43C</color>
+    <color name="error">#FF5A5F</color>
+    <color name="transparent">#00000000</color>
+</resources>
