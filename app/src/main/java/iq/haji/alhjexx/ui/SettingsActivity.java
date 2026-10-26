@@ -240,6 +240,14 @@ public class SettingsActivity extends PageActivity implements BtPrinter.Listener
         if (requestCode == REQ_BT) {
             if (BtPrinter.hasPermission(this)) {
                 pickPrinter();
+            } else if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.S
+                    && !shouldShowRequestPermissionRationale(Manifest.permission.BLUETOOTH_CONNECT)) {
+                // رُفض الإذن نهائياً فلن يظهر طلب النظام مجدداً؛ نفتح صفحة أذونات التطبيق مباشرة.
+                Ui.confirm(this, "إذن الأجهزة القريبة",
+                        "الإذن مرفوض في إعدادات الجهاز. افتح «الأذونات ← الأجهزة القريبة» واختر «سماح».",
+                        "فتح الإعدادات", () -> startActivity(new Intent(
+                                android.provider.Settings.ACTION_APPLICATION_DETAILS_SETTINGS,
+                                Uri.fromParts("package", getPackageName(), null))));
             } else {
                 Ui.error(this, "لم يُمنح الإذن. يمكنك منحه لاحقاً من إعدادات التطبيق في الجهاز.");
             }
