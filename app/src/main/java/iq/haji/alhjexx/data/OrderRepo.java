@@ -66,18 +66,17 @@ public final class OrderRepo {
         }
     }
 
-    /** رقم فاتورة فريد بصيغة yyMMdd-NNNN، يُحسب داخل معاملة الاعتماد. */
-    private static String nextInvoiceNo(SQLiteDatabase db, long now) {
-        String prefix = Dates.invoicePrefix(now);
+    /** رقم فاتورة تسلسلي بسيط (#1، #2، ...) يُحسب داخل معاملة الاعتماد. الفواتير القديمة بصيغة التاريخ لا تؤثر عليه. */
+    private static String nextInvoiceNo(SQLiteDatabase db) {
         long seq = 1;
         try (Cursor c = db.rawQuery(
-                "SELECT COALESCE(MAX(CAST(substr(invoice_no,8) AS INTEGER)),0)+1 FROM orders WHERE invoice_no LIKE ?",
-                new String[]{prefix + "-%"})) {
+                "SELECT COALESCE(MAX(CAST(substr(invoice_no,2) AS INTEGER)),0)+1 FROM orders WHERE invoice_no LIKE '#%'",
+                null)) {
             if (c.moveToFirst()) {
                 seq = c.getLong(0);
             }
         }
-        return prefix + "-" + String.format(java.util.Locale.US, "%04d", seq);
+        return "#" + seq;
     }
 
     /**
@@ -121,7 +120,7 @@ public final class OrderRepo {
             long now = System.currentTimeMillis();
             ContentValues o = new ContentValues();
             o.put("uuid", cart.clientUuid);
-            o.put("invoice_no", nextInvoiceNo(db, now));
+            o.put("invoice_no", nextInvoiceNo(db));
             o.put("shift_id", shift.id);
             o.put("user_id", user.id);
             o.put("cashier_name", user.name);

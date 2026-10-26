@@ -174,7 +174,7 @@ public class SettingsActivity extends PageActivity implements BtPrinter.Listener
         TextView test = Ui.button(this, "اختبار الطباعة", false);
         test.setOnClickListener(v -> testPrint());
         row.addView(test, rowLp(true));
-        toggle(printerCard, "قطع الورق بعد الطباعة (إن كانت الطابعة تدعمه)", Settings.PRINT_CUT, true);
+        toggle(printerCard, "قطع الوصل تلقائياً بعد الطباعة (للطابعات التي فيها قاطع)", Settings.PRINT_CUT, true);
     }
 
     private LinearLayout.LayoutParams rowLp(boolean gap) {
