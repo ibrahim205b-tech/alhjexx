@@ -66,17 +66,27 @@ public final class OrderRepo {
         }
     }
 
-    /** رقم فاتورة تسلسلي بسيط (#1، #2، ...) يُحسب داخل معاملة الاعتماد. الفواتير القديمة بصيغة التاريخ لا تؤثر عليه. */
-    private static String nextInvoiceNo(SQLiteDatabase db) {
+    /**
+     * رقم فاتورة تسلسلي يبدأ من #1 مع كل وردية جديدة.
+     * يُخزَّن بصيغة «رقم_الوردية_الداخلي#N» ليبقى فريداً في القاعدة، ويُعرض ويُطبع «#N» فقط.
+     */
+    private static String nextInvoiceNo(SQLiteDatabase db, long shiftId) {
         long seq = 1;
         try (Cursor c = db.rawQuery(
-                "SELECT COALESCE(MAX(CAST(substr(invoice_no,2) AS INTEGER)),0)+1 FROM orders WHERE invoice_no LIKE '#%'",
-                null)) {
+                "SELECT COALESCE(MAX(CAST(substr(invoice_no,instr(invoice_no,'#')+1) AS INTEGER)),0)+1"
+                        + " FROM orders WHERE shift_id=? AND instr(invoice_no,'#')>0",
+                new String[]{String.valueOf(shiftId)})) {
             if (c.moveToFirst()) {
                 seq = c.getLong(0);
             }
         }
-        return "#" + seq;
+        return shiftId + "#" + seq;
+    }
+
+    /** الجزء المعروض من رقم الفاتورة: «#N» (الفواتير القديمة تبقى كما هي). */
+    static String displayInvoiceNo(String stored) {
+        int i = stored == null ? -1 : stored.indexOf('#');
+        return i < 0 ? stored : stored.substring(i);
     }
 
     /**
@@ -120,7 +130,7 @@ public final class OrderRepo {
             long now = System.currentTimeMillis();
             ContentValues o = new ContentValues();
             o.put("uuid", cart.clientUuid);
-            o.put("invoice_no", nextInvoiceNo(db));
+            o.put("invoice_no", nextInvoiceNo(db, shift.id));
             o.put("shift_id", shift.id);
             o.put("user_id", user.id);
             o.put("cashier_name", user.name);
@@ -180,7 +190,7 @@ public final class OrderRepo {
         Order o = new Order();
         o.id = c.getLong(0);
         o.uuid = c.getString(1);
-        o.invoiceNo = c.getString(2);
+        o.invoiceNo = displayInvoiceNo(c.getString(2));
         o.shiftId = c.getLong(3);
         o.shiftNo = c.getLong(4);
         o.userId = c.getLong(5);

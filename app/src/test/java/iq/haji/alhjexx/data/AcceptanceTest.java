@@ -162,6 +162,8 @@ public class AcceptanceTest {
         assertEquals(2_000, o2.paidBy(PayMethod.CASH));
         assertEquals(4_000, o2.paidBy(PayMethod.CARD));
         assertFalse(o1.invoiceNo.equals(o2.invoiceNo));
+        assertEquals("#1", o1.invoiceNo);
+        assertEquals("#2", o2.invoiceNo);
 
         // دفع لا يساوي الإجمالي يُرفض
         assertThrows(AppException.class, () -> orders.confirm(cart(OrderType.TAKEAWAY, 1, 0), 5_000, 0, cashier));
@@ -235,6 +237,7 @@ public class AcceptanceTest {
         // 16
         shifts.open(cashier, 0);
         long id = orders.confirm(cart(OrderType.TAKEAWAY, 2, 0), 12_000, 0, cashier);
+        assertEquals("#1", orders.get(id).invoiceNo);
         Product k = catalog.product(kebab);
         k.price = 9_000;
         catalog.saveProduct(k, "test");
