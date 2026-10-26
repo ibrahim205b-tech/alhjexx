@@ -59,9 +59,9 @@ public class MainActivity extends BaseActivity implements BtPrinter.Listener {
     private long selectedCategory;
 
     private TextView tvClock, chipShift, chipPrinter, chipUser, tvShiftWarning;
-    private TextView segDineIn, segTakeaway, tvTable, tvEmpty, tvItemCount;
+    private TextView tvTable, tvEmpty, tvItemCount;
     private TextView tvSubtotal, tvDiscount, tvDiscountLabel, tvTotal, tvLastInvoice;
-    private TextView tvCategoryTitle, tvNoProducts, btnConfirm, btnPrint, btnService, tvService;
+    private TextView tvCategoryTitle, tvNoProducts, btnPrint, btnService, tvService;
     private View rowDiscount, rowService;
     private LineAdapter lineAdapter;
     private CategoryAdapter categoryAdapter;
@@ -94,8 +94,6 @@ public class MainActivity extends BaseActivity implements BtPrinter.Listener {
         chipPrinter = findViewById(R.id.chipPrinter);
         chipUser = findViewById(R.id.chipUser);
         tvShiftWarning = findViewById(R.id.tvShiftWarning);
-        segDineIn = findViewById(R.id.segDineIn);
-        segTakeaway = findViewById(R.id.segTakeaway);
         tvTable = findViewById(R.id.tvTable);
         tvEmpty = findViewById(R.id.tvEmpty);
         tvItemCount = findViewById(R.id.tvItemCount);
@@ -106,7 +104,6 @@ public class MainActivity extends BaseActivity implements BtPrinter.Listener {
         tvLastInvoice = findViewById(R.id.tvLastInvoice);
         tvCategoryTitle = findViewById(R.id.tvCategoryTitle);
         tvNoProducts = findViewById(R.id.tvNoProducts);
-        btnConfirm = findViewById(R.id.btnConfirm);
         btnPrint = findViewById(R.id.btnPrint);
         rowDiscount = findViewById(R.id.rowDiscount);
         rowService = findViewById(R.id.rowService);
@@ -132,14 +129,16 @@ public class MainActivity extends BaseActivity implements BtPrinter.Listener {
             onProduct(products.get(pos));
         });
 
-        segDineIn.setOnClickListener(v -> setType(OrderType.DINE_IN));
-        segTakeaway.setOnClickListener(v -> setType(OrderType.TAKEAWAY));
         tvTable.setOnClickListener(v -> editTable());
-        findViewById(R.id.btnNew).setOnClickListener(v -> onNewOrder());
         findViewById(R.id.btnClear).setOnClickListener(v -> onClearOrder());
-        findViewById(R.id.btnDiscount).setOnClickListener(v -> onDiscount());
-        btnConfirm.setOnClickListener(v -> onConfirm());
-        btnPrint.setOnClickListener(v -> onPrint());
+        // «طباعة»: يعتمد الطلب الجاري (الدفع) ثم يطبع فاتورته، أو يعيد طباعة آخر فاتورة إذا كان الطلب فارغاً.
+        btnPrint.setOnClickListener(v -> {
+            if (cart.lines.isEmpty()) {
+                onPrint();
+            } else {
+                onConfirm();
+            }
+        });
         findViewById(R.id.btnAdmin).setOnClickListener(v -> startActivity(new Intent(this, AdminActivity.class)));
         findViewById(R.id.btnOrders).setOnClickListener(v -> startActivity(new Intent(this, OrdersActivity.class)));
         findViewById(R.id.btnLogout).setOnClickListener(v -> onLogout());
@@ -320,6 +319,7 @@ public class MainActivity extends BaseActivity implements BtPrinter.Listener {
         }
         if (cart.serviceFee > 0) {
             cart.serviceFee = 0;
+            cart.type = OrderType.TAKEAWAY;
         } else {
             cart.type = OrderType.DINE_IN;
             cart.serviceFee = settings.serviceFee();
@@ -346,8 +346,6 @@ public class MainActivity extends BaseActivity implements BtPrinter.Listener {
     private void refreshCart() {
         cart.clampDiscount();
         boolean dine = OrderType.DINE_IN.equals(cart.type);
-        segDineIn.setSelected(dine);
-        segTakeaway.setSelected(!dine);
         boolean tables = settings.getBool(Settings.TABLES_ENABLED, true);
         tvTable.setVisibility(dine && tables ? View.VISIBLE : View.GONE);
         tvTable.setText(cart.tableLabel == null || cart.tableLabel.isEmpty()
@@ -375,13 +373,13 @@ public class MainActivity extends BaseActivity implements BtPrinter.Listener {
         tvDiscount.setText("- " + Money.format(disc));
         boolean service = cart.serviceFee > 0;
         btnService.setSelected(service);
-        btnService.setText(service ? "✓ خدمة صالة مضافة  " + Money.format(cart.serviceFee) + "  (اضغط للإزالة)"
-                : "🍽 خدمة صالة  +" + Money.format(settings.serviceFee()));
+        btnService.setText(service ? "✓ خدمة صالة\n" + Money.format(cart.serviceFee)
+                : "🍽 خدمة صالة\n+" + Money.format(settings.serviceFee()));
         rowService.setVisibility(service ? View.VISIBLE : View.GONE);
         tvService.setText("+ " + Money.format(cart.serviceFee));
         tvTotal.setText(Money.format(total));
-        btnConfirm.setEnabled(!confirming && !cart.lines.isEmpty());
-        btnConfirm.setText(confirming ? "جارٍ الحفظ..." : "تأكيد الطلب");
+        btnPrint.setEnabled(!confirming);
+        btnPrint.setText(confirming ? "جارٍ الحفظ..." : "طباعة");
         if (lastOrderId > 0) {
             Order last = orders.get(lastOrderId);
             tvLastInvoice.setText(last == null ? "" : "آخر فاتورة معتمدة: " + last.invoiceNo + "  •  " + Money.format(last.total));
@@ -635,7 +633,7 @@ public class MainActivity extends BaseActivity implements BtPrinter.Listener {
             confirming = false;
             refreshCart();
             Ui.toast(this, "تم اعتماد الطلب — فاتورة " + (o == null ? "" : o.invoiceNo));
-            if (o != null && settings.getBool(Settings.AUTO_PRINT, true)) {
+            if (o != null) {
                 printOrder(o);
             }
         } catch (AppException e) {
@@ -674,7 +672,7 @@ public class MainActivity extends BaseActivity implements BtPrinter.Listener {
                         settings.getBool(Settings.TABLES_ENABLED, true), reprint),
                 settings.getInt(Settings.RECEIPT_COPIES, 1), (ok, msg) -> {
                     btnPrint.setEnabled(true);
-                    btnPrint.setText("طباعة الفاتورة");
+                    btnPrint.setText("طباعة");
                     if (ok) {
                         orders.markPrinted(o.id);
                         Ui.toast(this, "طُبعت الفاتورة " + o.invoiceNo);

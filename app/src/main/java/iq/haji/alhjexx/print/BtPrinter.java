@@ -193,7 +193,10 @@ public final class BtPrinter {
                     closeQuietly();
                     err = "تعذر الإرسال للطابعة. تأكد أنها مشغّلة وقريبة ثم أعد المحاولة.";
                 } catch (SecurityException e) {
-                    err = "إذن الأجهزة القريبة غير ممنوح. امنحه من إعدادات الطابعة.";
+                    closeQuietly();
+                    err = hasPermission(ctx)
+                            ? "رفض النظام الاتصال بالطابعة. أطفئ Bluetooth وشغّله ثم أعد المحاولة."
+                            : "إذن الأجهزة القريبة غير ممنوح. امنحه من الإعدادات ← اختيار الطابعة.";
                     break;
                 } catch (IllegalStateException e) {
                     err = e.getMessage();
@@ -233,7 +236,8 @@ public final class BtPrinter {
         }
         closeQuietly();
         setState(State.CONNECTING, "");
-        a.cancelDiscovery();
+        // لا نستدعي cancelDiscovery: على Android 12+ يتطلب إذن BLUETOOTH_SCAN (غير مطلوب هنا)
+        // ويرمي SecurityException فيظهر خطأ «الإذن غير ممنوح» رغم منح إذن الاتصال.
         BluetoothDevice device = a.getRemoteDevice(address);
         BluetoothSocket s;
         try {
