@@ -115,7 +115,7 @@ public final class BtPrinter {
             case ERROR:
                 return "الطابعة: خطأ اتصال";
             default:
-                return "الطابعة: تتصل عند الطباعة";
+                return "الطابعة: جاهزة";
         }
     }
 
@@ -173,25 +173,37 @@ public final class BtPrinter {
         setState(State.DISCONNECTED, "");
     }
 
-    /** يرسل البيانات للطابعة، مع إعادة اتصال ومحاولة ثانية واحدة عند انقطاع الاتصال. */
+    /**
+     * يرسل مهمة طباعة كاملة باتصال جديد في كل مرة: اتصال ← مهلة قصيرة ← إرسال ← انتظار تفريغ البيانات ← إغلاق.
+     * الطابعات الرخيصة تُسقط الاتصال الخامل بصمت فتضيع البيانات المكتوبة على مقبس قديم دون أي خطأ،
+     * وبعضها يتجاهل أول البايتات إذا وصلت فور الاتصال، لذلك لا يُعاد استخدام المقبس بين المهام.
+     */
     public void send(final byte[] data, final Callback cb) {
         worker.execute(() -> {
             String err = null;
+            int written = 0;
             for (int attempt = 0; attempt < 2; attempt++) {
+                written = 0;
                 try {
+                    closeQuietly();
                     OutputStream out = ensureConnected();
-                    int chunk = 2048;
+                    Thread.sleep(300);
+                    int chunk = 1024;
                     for (int i = 0; i < data.length; i += chunk) {
-                        out.write(data, i, Math.min(chunk, data.length - i));
+                        int n = Math.min(chunk, data.length - i);
+                        out.write(data, i, n);
                         out.flush();
-                        Thread.sleep(15);
+                        written += n;
+                        Thread.sleep(20);
                     }
-                    setState(State.CONNECTED, "");
                     err = null;
                     break;
                 } catch (IOException e) {
                     closeQuietly();
                     err = "تعذر الإرسال للطابعة. تأكد أنها مشغّلة وقريبة ثم أعد المحاولة.";
+                    if (written > 0) {
+                        break; // لا نعيد الإرسال بعد كتابة جزء حتى لا تُطبع الفاتورة مرتين
+                    }
                 } catch (SecurityException e) {
                     closeQuietly();
                     err = hasPermission(ctx)
@@ -207,11 +219,20 @@ public final class BtPrinter {
                     break;
                 }
             }
-            if (err != null) {
-                setState(State.ERROR, err);
-            }
             final String msg = err;
             main.post(() -> cb.onDone(msg == null, msg == null ? "تم الإرسال إلى الطابعة" : msg));
+            if (err != null) {
+                setState(State.ERROR, err);
+                return;
+            }
+            // flush لا ينتظر خروج البيانات من مكدس البلوتوث؛ الإغلاق المبكر يقطع الفاتورة.
+            try {
+                Thread.sleep(Math.min(8000, 1500 + data.length / 10));
+            } catch (InterruptedException e) {
+                Thread.currentThread().interrupt();
+            }
+            closeQuietly();
+            setState(State.DISCONNECTED, "");
         });
     }
 
@@ -231,10 +252,6 @@ public final class BtPrinter {
         if (!a.isEnabled()) {
             throw new IllegalStateException("Bluetooth مطفأ. شغّله ثم أعد المحاولة.");
         }
-        if (socket != null && socket.isConnected() && address.equals(socketAddress)) {
-            return socket.getOutputStream();
-        }
-        closeQuietly();
         setState(State.CONNECTING, "");
         // لا نستدعي cancelDiscovery: على Android 12+ يتطلب إذن BLUETOOTH_SCAN (غير مطلوب هنا)
         // ويرمي SecurityException فيظهر خطأ «الإذن غير ممنوح» رغم منح إذن الاتصال.

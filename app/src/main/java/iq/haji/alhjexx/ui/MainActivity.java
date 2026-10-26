@@ -499,7 +499,7 @@ public class MainActivity extends BaseActivity implements BtPrinter.Listener {
         return r;
     }
 
-    // ---------------- الاعتماد والدفع ----------------
+    // ---------------- الاعتماد والطباعة ----------------
 
     private void onConfirm() {
         if (confirming) {
@@ -516,106 +516,8 @@ public class MainActivity extends BaseActivity implements BtPrinter.Listener {
                     "فتح وردية", () -> startActivity(new Intent(this, ShiftActivity.class)));
             return;
         }
-        showPayment();
-    }
-
-    private void showPayment() {
-        final long due = cart.total();
-        final boolean cardOn = settings.getBool(Settings.CARD_ENABLED, true);
-        final boolean mixedOn = cardOn && settings.getBool(Settings.MIXED_ENABLED, true);
-
-        LinearLayout f = Ui.form(this);
-        TextView dueView = Ui.text(this, Money.format(due), 30, R.color.white, true);
-        dueView.setGravity(android.view.Gravity.CENTER);
-        f.addView(Ui.text(this, OrderType.label(cart.type) + "  •  " + cart.itemCount() + " قطعة", 13, R.color.text_2, false));
-        f.addView(dueView, Ui.lp(this, LinearLayout.LayoutParams.MATCH_PARENT, LinearLayout.LayoutParams.WRAP_CONTENT, 6));
-
-        final RadioGroup rg = new RadioGroup(this);
-        rg.setOrientation(RadioGroup.HORIZONTAL);
-        rg.addView(radio("نقداً", 1));
-        if (cardOn) {
-            rg.addView(radio("بطاقة / إلكتروني", 2));
-        }
-        if (mixedOn) {
-            rg.addView(radio("مختلط", 3));
-        }
-        rg.check(1);
-        f.addView(rg, Ui.lp(this, LinearLayout.LayoutParams.MATCH_PARENT, LinearLayout.LayoutParams.WRAP_CONTENT, 10));
-
-        final TextView receivedLabel = Ui.label(this, "المبلغ المستلم من الزبون (اختياري لحساب الباقي)");
-        final EditText received = Ui.money(this, "مثال: 20000", "");
-        final TextView cardLabel = Ui.label(this, "المبلغ المدفوع إلكترونياً");
-        final EditText cardPart = Ui.money(this, "جزء البطاقة", "");
-        final TextView info = Ui.text(this, "", 14, R.color.success, true);
-        f.addView(receivedLabel);
-        f.addView(received);
-        f.addView(cardLabel);
-        f.addView(cardPart);
-        f.addView(info, Ui.lp(this, LinearLayout.LayoutParams.MATCH_PARENT, LinearLayout.LayoutParams.WRAP_CONTENT, 10));
-        f.addView(Ui.text(this, "الدفع الإلكتروني تسجيل محاسبي فقط ولا يرتبط بجهاز دفع.", 11, R.color.text_3, false));
-
-        final Runnable update = () -> {
-            int m = rg.getCheckedRadioButtonId();
-            boolean cashVisible = m == 1 || m == 3;
-            receivedLabel.setVisibility(cashVisible ? View.VISIBLE : View.GONE);
-            received.setVisibility(cashVisible ? View.VISIBLE : View.GONE);
-            cardLabel.setVisibility(m == 3 ? View.VISIBLE : View.GONE);
-            cardPart.setVisibility(m == 3 ? View.VISIBLE : View.GONE);
-            long card = m == 2 ? due : (m == 3 ? Math.max(0, Money.parse(cardPart.getText().toString())) : 0);
-            long cash = due - card;
-            String text = "";
-            if (m == 3) {
-                text = card > due ? "جزء البطاقة أكبر من المستحق" : "نقداً: " + Money.format(cash) + "  +  بطاقة: " + Money.format(card);
-            }
-            long got = Money.parse(received.getText().toString());
-            if (cashVisible && got > 0 && cash > 0) {
-                text += (text.isEmpty() ? "" : "\n") + (got >= cash ? "الباقي للزبون: " + Money.format(got - cash)
-                        : "المستلم أقل من المطلوب نقداً");
-            }
-            info.setText(text);
-        };
-        android.text.TextWatcher w = new android.text.TextWatcher() {
-            @Override
-            public void beforeTextChanged(CharSequence s, int a, int b, int c) {
-            }
-
-            @Override
-            public void onTextChanged(CharSequence s, int a, int b, int c) {
-            }
-
-            @Override
-            public void afterTextChanged(android.text.Editable s) {
-                update.run();
-            }
-        };
-        received.addTextChangedListener(w);
-        cardPart.addTextChangedListener(w);
-        rg.setOnCheckedChangeListener((g, id) -> update.run());
-        update.run();
-
-        Ui.showForm(this, "الدفع واعتماد الطلب", Ui.scroll(this, f), "اعتماد", () -> {
-            int m = rg.getCheckedRadioButtonId();
-            long card;
-            if (m == 2) {
-                card = due;
-            } else if (m == 3) {
-                card = Money.parse(cardPart.getText().toString());
-                if (card <= 0 || card >= due) {
-                    cardPart.setError("أدخل جزء البطاقة (أكبر من صفر وأقل من الإجمالي)");
-                    return false;
-                }
-            } else {
-                card = 0;
-            }
-            long cash = due - card;
-            long got = Money.parse(received.getText().toString());
-            if ((m == 1 || m == 3) && got > 0 && got < cash) {
-                received.setError("المبلغ المستلم أقل من المطلوب");
-                return false;
-            }
-            commit(cash, card);
-            return true;
-        });
+        // لا قائمة دفع: الطباعة تعتمد الطلب نقداً بكامل المبلغ ثم تطبع فوراً.
+        commit(cart.total(), 0);
     }
 
     private void commit(long cash, long card) {
@@ -632,7 +534,6 @@ public class MainActivity extends BaseActivity implements BtPrinter.Listener {
             cart = new Cart();
             confirming = false;
             refreshCart();
-            Ui.toast(this, "تم اعتماد الطلب — فاتورة " + (o == null ? "" : o.invoiceNo));
             if (o != null) {
                 printOrder(o);
             }

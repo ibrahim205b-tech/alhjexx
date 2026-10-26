@@ -49,14 +49,14 @@ public final class EscPos {
                 }
             }
         }
-        for (int i = 0; i < Math.max(0, feedLines); i++) {
-            out.write(0x0A);
-        }
+        out.write(0x1B);
+        out.write(0x64);
+        out.write(Math.max(0, Math.min(feedLines, 255))); // ESC d n تغذية
         if (cut) {
             out.write(0x1D);
             out.write(0x56);
-            out.write(0x42);
-            out.write(0x00); // GS V B 0 قطع جزئي بعد تغذية
+            out.write(66);
+            out.write(3); // GS V 66 n تغذية ثم قص جزئي؛ تتجاهله الطابعات بلا قاطع
         }
         return out.toByteArray();
     }
@@ -66,6 +66,6 @@ public final class EscPos {
             return false;
         }
         int lum = (Color.red(argb) * 299 + Color.green(argb) * 587 + Color.blue(argb) * 114) / 1000;
-        return lum < 140;
+        return lum < 150;
     }
 }
