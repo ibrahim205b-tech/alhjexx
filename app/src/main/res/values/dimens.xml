@@ -2,5 +2,5 @@
 <resources>
     <dimen name="radius">12dp</dimen>
     <dimen name="gap">10dp</dimen>
-    <dimen name="btn_h">46dp</dimen>
+    <dimen name="btn_h">49dp</dimen>
 </resources>

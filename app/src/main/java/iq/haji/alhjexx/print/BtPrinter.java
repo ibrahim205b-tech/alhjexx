@@ -233,7 +233,13 @@ public final class BtPrinter {
         }
         closeQuietly();
         setState(State.CONNECTING, "");
-        a.cancelDiscovery();
+        // إيقاف البحث يحتاج إذن BLUETOOTH_SCAN على Android 12+ وهو غير مطلوب للاتصال بطابعة مقترنة،
+        // فلا نجعل غيابه يُظهر رسالة «الإذن غير ممنوح» رغم منح إذن الأجهزة القريبة.
+        try {
+            a.cancelDiscovery();
+        } catch (SecurityException ignored) {
+            // لا يوجد بحث جارٍ من التطبيق أصلاً
+        }
         BluetoothDevice device = a.getRemoteDevice(address);
         BluetoothSocket s;
         try {

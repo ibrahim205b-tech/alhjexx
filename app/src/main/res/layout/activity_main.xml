@@ -114,7 +114,79 @@
         android:orientation="horizontal"
         android:padding="10dp">
 
-        <!-- الطلب الحالي (يمين) -->
+        <!-- الأقسام (يمين) -->
+        <LinearLayout
+            android:layout_width="0dp"
+            android:layout_height="match_parent"
+            android:layout_weight="20"
+            android:background="@drawable/card"
+            android:orientation="vertical"
+            android:padding="8dp">
+
+            <TextView
+                style="@style/Haji.Caption"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:gravity="center"
+                android:paddingBottom="6dp"
+                android:text="الأقسام" />
+
+            <ListView
+                android:id="@+id/lvCategories"
+                android:layout_width="match_parent"
+                android:layout_height="0dp"
+                android:layout_weight="1"
+                android:divider="@color/transparent"
+                android:dividerHeight="6dp"
+                android:listSelector="@color/transparent" />
+        </LinearLayout>
+
+        <!-- الأصناف (وسط) -->
+        <LinearLayout
+            android:layout_width="0dp"
+            android:layout_height="match_parent"
+            android:layout_marginStart="10dp"
+            android:layout_marginEnd="10dp"
+            android:layout_weight="46"
+            android:orientation="vertical">
+
+            <TextView
+                android:id="@+id/tvCategoryTitle"
+                style="@style/Haji.Title"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:paddingBottom="8dp" />
+
+            <FrameLayout
+                android:layout_width="match_parent"
+                android:layout_height="0dp"
+                android:layout_weight="1">
+
+                <GridView
+                    android:id="@+id/gvProducts"
+                    android:layout_width="match_parent"
+                    android:layout_height="match_parent"
+                    android:columnWidth="150dp"
+                    android:horizontalSpacing="8dp"
+                    android:listSelector="@color/transparent"
+                    android:numColumns="auto_fit"
+                    android:stretchMode="columnWidth"
+                    android:verticalSpacing="8dp" />
+
+                <TextView
+                    android:id="@+id/tvNoProducts"
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:layout_gravity="center"
+                    android:gravity="center"
+                    android:padding="20dp"
+                    android:textColor="@color/text_3"
+                    android:textSize="14sp"
+                    android:visibility="gone" />
+            </FrameLayout>
+        </LinearLayout>
+
+        <!-- الطلب الحالي (يسار) -->
         <LinearLayout
             android:layout_width="0dp"
             android:layout_height="match_parent"
@@ -354,78 +426,6 @@
                 android:layout_height="wrap_content"
                 android:layout_marginTop="6dp"
                 android:gravity="center" />
-        </LinearLayout>
-
-        <!-- الأصناف (وسط) -->
-        <LinearLayout
-            android:layout_width="0dp"
-            android:layout_height="match_parent"
-            android:layout_marginStart="10dp"
-            android:layout_marginEnd="10dp"
-            android:layout_weight="50"
-            android:orientation="vertical">
-
-            <TextView
-                android:id="@+id/tvCategoryTitle"
-                style="@style/Haji.Title"
-                android:layout_width="match_parent"
-                android:layout_height="wrap_content"
-                android:paddingBottom="8dp" />
-
-            <FrameLayout
-                android:layout_width="match_parent"
-                android:layout_height="0dp"
-                android:layout_weight="1">
-
-                <GridView
-                    android:id="@+id/gvProducts"
-                    android:layout_width="match_parent"
-                    android:layout_height="match_parent"
-                    android:columnWidth="150dp"
-                    android:horizontalSpacing="8dp"
-                    android:listSelector="@color/transparent"
-                    android:numColumns="auto_fit"
-                    android:stretchMode="columnWidth"
-                    android:verticalSpacing="8dp" />
-
-                <TextView
-                    android:id="@+id/tvNoProducts"
-                    android:layout_width="wrap_content"
-                    android:layout_height="wrap_content"
-                    android:layout_gravity="center"
-                    android:gravity="center"
-                    android:padding="20dp"
-                    android:textColor="@color/text_3"
-                    android:textSize="14sp"
-                    android:visibility="gone" />
-            </FrameLayout>
-        </LinearLayout>
-
-        <!-- الأقسام (يسار) -->
-        <LinearLayout
-            android:layout_width="0dp"
-            android:layout_height="match_parent"
-            android:layout_weight="16"
-            android:background="@drawable/card"
-            android:orientation="vertical"
-            android:padding="8dp">
-
-            <TextView
-                style="@style/Haji.Caption"
-                android:layout_width="match_parent"
-                android:layout_height="wrap_content"
-                android:gravity="center"
-                android:paddingBottom="6dp"
-                android:text="الأقسام" />
-
-            <ListView
-                android:id="@+id/lvCategories"
-                android:layout_width="match_parent"
-                android:layout_height="0dp"
-                android:layout_weight="1"
-                android:divider="@color/transparent"
-                android:dividerHeight="6dp"
-                android:listSelector="@color/transparent" />
         </LinearLayout>
     </LinearLayout>
 </LinearLayout>
