@@ -11,7 +11,7 @@ import android.database.sqlite.SQLiteOpenHelper;
 public final class Db extends SQLiteOpenHelper {
 
     public static final String NAME = "alhjexx.db";
-    public static final int VERSION = 1;
+    public static final int VERSION = 2;
 
     /** علامة تُكتب في الإعدادات للتحقق من أن ملف النسخة الاحتياطية يخص هذا التطبيق. */
     public static final String SIGNATURE_KEY = "db_signature";
@@ -138,6 +138,7 @@ public final class Db extends SQLiteOpenHelper {
                 + "discount_type TEXT NOT NULL DEFAULT 'NONE',"
                 + "discount_value INTEGER NOT NULL DEFAULT 0,"
                 + "discount_amount INTEGER NOT NULL DEFAULT 0 CHECK(discount_amount >= 0),"
+                + "service_fee INTEGER NOT NULL DEFAULT 0 CHECK(service_fee >= 0),"
                 + "total INTEGER NOT NULL CHECK(total >= 0),"
                 + "created_at INTEGER NOT NULL,"
                 + "print_count INTEGER NOT NULL DEFAULT 0)");
@@ -215,6 +216,10 @@ public final class Db extends SQLiteOpenHelper {
 
     @Override
     public void onUpgrade(SQLiteDatabase db, int oldVersion, int newVersion) {
-        // الإصدار 1. أي ترقية مستقبلية تُضاف هنا خطوة بخطوة دون حذف بيانات.
+        // كل ترقية تضيف ما ينقص خطوة بخطوة دون حذف بيانات.
+        if (oldVersion < 2) {
+            // الإصدار 2: خدمة الصالة لكل طلب.
+            db.execSQL("ALTER TABLE orders ADD COLUMN service_fee INTEGER NOT NULL DEFAULT 0");
+        }
     }
 }

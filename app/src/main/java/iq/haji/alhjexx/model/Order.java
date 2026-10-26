@@ -19,6 +19,8 @@ public class Order {
     public String discountType;
     public long discountValue;
     public long discountAmount;
+    /** خدمة الصالة المضافة للطلب. */
+    public long serviceFee;
     public long total;
     public long createdAt;
     public int printCount;

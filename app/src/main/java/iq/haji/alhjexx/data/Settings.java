@@ -25,6 +25,8 @@ public final class Settings {
     public static final String PRINT_FEED_LINES = "print_feed_lines";
     public static final String PRINT_CUT = "print_cut";
     public static final String SHIFT_AUTO_PRINT = "shift_auto_print_on_close";
+    public static final String SERVICE_FEE = "dine_in_service_fee";
+    public static final long DEFAULT_SERVICE_FEE = 2000;
 
     public static final String DEFAULT_RESTAURANT_NAME = "مطعم الحجي";
     public static final String DEFAULT_FOOTER = "شكراً لزيارتكم";
@@ -74,6 +76,12 @@ public final class Settings {
 
     public void setInt(String key, int value) {
         set(key, String.valueOf(value));
+    }
+
+    /** مبلغ خدمة الصالة (الافتراضي 2000 د.ع). */
+    public long serviceFee() {
+        long v = iq.haji.alhjexx.core.Money.parse(get(SERVICE_FEE, String.valueOf(DEFAULT_SERVICE_FEE)));
+        return v > 0 ? v : DEFAULT_SERVICE_FEE;
     }
 
     public String restaurantName() {

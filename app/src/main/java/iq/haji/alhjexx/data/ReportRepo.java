@@ -22,7 +22,8 @@ import iq.haji.alhjexx.model.OrderStatus;
  * <ul>
  *   <li>إجمالي المبيعات = مجموع أسطر الطلبات غير الملغاة قبل الخصم.</li>
  *   <li>الخصومات = مجموع خصومات الطلبات غير الملغاة.</li>
- *   <li>صافي المبيعات = إجمالي المبيعات − الخصومات = مجموع إجماليات الطلبات غير الملغاة.</li>
+ *   <li>خدمة الصالة = مجموع رسوم الخدمة للطلبات غير الملغاة.</li>
+ *   <li>صافي المبيعات = إجمالي المبيعات − الخصومات + خدمة الصالة = مجموع إجماليات الطلبات غير الملغاة.</li>
  *   <li>الملغاة تُعرض منفصلة بقيمتها الأصلية ولا تدخل في المبيعات.</li>
  *   <li>الاسترجاعات تُعرض منفصلة وتؤثر في الصندوق فقط إذا كانت نقدية.</li>
  *   <li>المصروفات تُعرض منفصلة ولا تُخصم من المبيعات.</li>
@@ -87,6 +88,8 @@ public final class ReportRepo {
         public long gross;
         public long discounts;
         public int discountedOrders;
+        public long serviceFees;
+        public int serviceOrders;
         public long net;
         public int cancelledCount;
         public long cancelledTotal;
@@ -114,6 +117,7 @@ public final class ReportRepo {
                 j.put("takeaway_total", takeawayTotal);
                 j.put("gross", gross);
                 j.put("discounts", discounts);
+                j.put("service_fees", serviceFees);
                 j.put("net", net);
                 j.put("cancelled_count", cancelledCount);
                 j.put("cancelled_total", cancelledTotal);
@@ -156,7 +160,8 @@ public final class ReportRepo {
         String w = f.where("o", "created_at", a);
         try (Cursor c = db.rawQuery("SELECT o.order_type, o.status, COUNT(*), COALESCE(SUM(o.subtotal),0), "
                 + "COALESCE(SUM(o.discount_amount),0), COALESCE(SUM(o.total),0), "
-                + "SUM(CASE WHEN o.discount_amount>0 THEN 1 ELSE 0 END) "
+                + "SUM(CASE WHEN o.discount_amount>0 THEN 1 ELSE 0 END), "
+                + "COALESCE(SUM(o.service_fee),0), SUM(CASE WHEN o.service_fee>0 THEN 1 ELSE 0 END) "
                 + "FROM orders o WHERE " + w + " GROUP BY o.order_type, o.status", a.toArray(new String[0]))) {
             while (c.moveToNext()) {
                 String type = c.getString(0);
@@ -173,6 +178,8 @@ public final class ReportRepo {
                 s.discounts += c.getLong(4);
                 s.net += total;
                 s.discountedOrders += c.getInt(6);
+                s.serviceFees += c.getLong(7);
+                s.serviceOrders += c.getInt(8);
                 if ("DINE_IN".equals(type)) {
                     s.dineInCount += count;
                     s.dineInTotal += total;

@@ -61,8 +61,8 @@ public class MainActivity extends BaseActivity implements BtPrinter.Listener {
     private TextView tvClock, chipShift, chipPrinter, chipUser, tvShiftWarning;
     private TextView segDineIn, segTakeaway, tvTable, tvEmpty, tvItemCount;
     private TextView tvSubtotal, tvDiscount, tvDiscountLabel, tvTotal, tvLastInvoice;
-    private TextView tvCategoryTitle, tvNoProducts, btnConfirm, btnPrint;
-    private View rowDiscount;
+    private TextView tvCategoryTitle, tvNoProducts, btnConfirm, btnPrint, btnService, tvService;
+    private View rowDiscount, rowService;
     private LineAdapter lineAdapter;
     private CategoryAdapter categoryAdapter;
     private ProductAdapter productAdapter;
@@ -109,6 +109,10 @@ public class MainActivity extends BaseActivity implements BtPrinter.Listener {
         btnConfirm = findViewById(R.id.btnConfirm);
         btnPrint = findViewById(R.id.btnPrint);
         rowDiscount = findViewById(R.id.rowDiscount);
+        rowService = findViewById(R.id.rowService);
+        tvService = findViewById(R.id.tvService);
+        btnService = findViewById(R.id.btnService);
+        btnService.setOnClickListener(v -> toggleService());
 
         ListView lvLines = findViewById(R.id.lvLines);
         lineAdapter = new LineAdapter();
@@ -252,7 +256,7 @@ public class MainActivity extends BaseActivity implements BtPrinter.Listener {
         tvCategoryTitle.setText(title);
         productAdapter.notifyDataSetChanged();
         if (categories.isEmpty()) {
-            tvNoProducts.setText("لا توجد أقسام بعد.\nأضف الأقسام والأصناف من الإدارة ← المنيو.");
+            tvNoProducts.setText("لا توجد أقسام بعد.\nمن الإدارة ← المنيو اضغط «⬇ القائمة الرسمية» لإضافة قائمة مطعم الحجي كاملة.");
             tvNoProducts.setVisibility(View.VISIBLE);
         } else if (products.isEmpty()) {
             tvNoProducts.setText("لا توجد أصناف متاحة في هذا القسم");
@@ -309,6 +313,20 @@ public class MainActivity extends BaseActivity implements BtPrinter.Listener {
         refreshCart();
     }
 
+    /** خدمة الصالة: ضغطة تضيفها (وتجعل الطلب داخل المطعم)، وضغطة ثانية تزيلها. */
+    private void toggleService() {
+        if (confirming) {
+            return;
+        }
+        if (cart.serviceFee > 0) {
+            cart.serviceFee = 0;
+        } else {
+            cart.type = OrderType.DINE_IN;
+            cart.serviceFee = settings.serviceFee();
+        }
+        refreshCart();
+    }
+
     private void editTable() {
         LinearLayout f = Ui.form(this);
         final EditText e = Ui.input(this, "رقم الطاولة أو اسمها (اختياري)", InputType.TYPE_CLASS_TEXT, cart.tableLabel);
@@ -348,13 +366,19 @@ public class MainActivity extends BaseActivity implements BtPrinter.Listener {
             cart.discountType = OrderMath.DISCOUNT_NONE;
             cart.discountValue = 0;
             disc = 0;
-            total = sub;
+            total = sub + cart.serviceFee;
         }
         tvSubtotal.setText(Money.format(sub));
         rowDiscount.setVisibility(disc > 0 ? View.VISIBLE : View.GONE);
         tvDiscountLabel.setText(OrderMath.DISCOUNT_PERCENT.equals(cart.discountType)
                 ? "الخصم (" + cart.discountValue + "%)" : "الخصم");
         tvDiscount.setText("- " + Money.format(disc));
+        boolean service = cart.serviceFee > 0;
+        btnService.setSelected(service);
+        btnService.setText(service ? "✓ خدمة صالة مضافة  " + Money.format(cart.serviceFee) + "  (اضغط للإزالة)"
+                : "🍽 خدمة صالة  +" + Money.format(settings.serviceFee()));
+        rowService.setVisibility(service ? View.VISIBLE : View.GONE);
+        tvService.setText("+ " + Money.format(cart.serviceFee));
         tvTotal.setText(Money.format(total));
         btnConfirm.setEnabled(!confirming && !cart.lines.isEmpty());
         btnConfirm.setText(confirming ? "جارٍ الحفظ..." : "تأكيد الطلب");

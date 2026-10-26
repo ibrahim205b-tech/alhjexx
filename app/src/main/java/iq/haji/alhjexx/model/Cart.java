@@ -16,6 +16,8 @@ public class Cart {
     public String tableLabel = "";
     public String discountType = OrderMath.DISCOUNT_NONE;
     public long discountValue;
+    /** خدمة الصالة المضافة لهذا الطلب (0 = بدون). */
+    public long serviceFee;
     public final List<CartLine> lines = new ArrayList<>();
 
     public long subtotal() {
@@ -31,7 +33,7 @@ public class Cart {
     }
 
     public long total() {
-        return OrderMath.total(subtotal(), discountAmount());
+        return OrderMath.total(subtotal(), discountAmount(), serviceFee);
     }
 
     public int itemCount() {
@@ -81,6 +83,10 @@ public class Cart {
         if (lines.isEmpty()) {
             discountType = OrderMath.DISCOUNT_NONE;
             discountValue = 0;
+            serviceFee = 0;
+        }
+        if (!OrderType.DINE_IN.equals(type)) {
+            serviceFee = 0;
         }
     }
 }

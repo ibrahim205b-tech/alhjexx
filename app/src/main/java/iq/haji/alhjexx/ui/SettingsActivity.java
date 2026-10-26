@@ -269,6 +269,19 @@ public class SettingsActivity extends PageActivity implements BtPrinter.Listener
     private void buildOrders() {
         LinearLayout c = card("الطلبات والدفع والخصومات والمصروفات");
         toggle(c, "استخدام أرقام/أسماء الطاولات للطلبات داخل المطعم", Settings.TABLES_ENABLED, true);
+        final EditText service = Ui.money(this, "مبلغ خدمة الصالة", String.valueOf(settings.serviceFee()));
+        c.addView(Ui.label(this, "مبلغ خدمة الصالة (د.ع) — يُضاف عند الضغط على زر «خدمة صالة»"));
+        c.addView(service);
+        button(c, "حفظ مبلغ الخدمة", false, () -> {
+            long v = iq.haji.alhjexx.core.Money.parse(service.getText().toString());
+            if (v <= 0) {
+                service.setError("أدخل مبلغاً صحيحاً");
+                return;
+            }
+            settings.set(Settings.SERVICE_FEE, String.valueOf(v));
+            Audit.log(this, Session.actor(), "تعديل إعداد", "خدمة الصالة = " + v);
+            Ui.toast(this, "تم الحفظ");
+        });
         toggle(c, "تفعيل الدفع بالبطاقة / الإلكتروني (تسجيل فقط، بدون جهاز دفع)", Settings.CARD_ENABLED, true);
         toggle(c, "تفعيل الدفع المختلط (نقد + إلكتروني)", Settings.MIXED_ENABLED, true);
         toggle(c, "تفعيل الخصومات", Settings.DISCOUNT_ENABLED, true);

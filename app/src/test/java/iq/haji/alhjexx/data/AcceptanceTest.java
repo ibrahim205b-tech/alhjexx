@@ -314,6 +314,49 @@ public class AcceptanceTest {
     }
 
     @Test
+    public void dineInServiceFeeIsAddedAndPrinted() {
+        shifts.open(cashier, 0);
+        Cart c = cart(OrderType.DINE_IN, 1, 0);      // 6,000
+        c.serviceFee = 2_000;
+        assertEquals(8_000, c.total());
+        long id = orders.confirm(c, 8_000, 0, cashier);
+        Order o = orders.get(id);
+        assertEquals(2_000, o.serviceFee);
+        assertEquals(8_000, o.total);
+        assertEquals(6_000, o.subtotal);
+
+        // السفري لا تُحسب عليه خدمة صالة
+        Cart t = cart(OrderType.TAKEAWAY, 1, 0);
+        t.serviceFee = 2_000;
+        long id2 = orders.confirm(t, 6_000, 0, cashier);
+        assertEquals(0, orders.get(id2).serviceFee);
+
+        ReportRepo.Summary sum = reports.summary(ReportRepo.Filter.range(0, Long.MAX_VALUE));
+        assertEquals(2_000, sum.serviceFees);
+        assertEquals(12_000, sum.gross);
+        assertEquals(14_000, sum.net);
+    }
+
+    @Test
+    public void officialMenuImportsOnceWithPizzaSizes() {
+        OfficialMenu.Result r = OfficialMenu.importMenu(ctx, true, "test");
+        assertEquals(16, r.categories);
+        // «بيبسي 500» موجود مسبقاً في قسم المشروبات فيُعاد تفعيله بدل تكراره.
+        assertEquals(OfficialMenu.itemCount(), r.added + r.alreadyPresent);
+        OfficialMenu.Result again = OfficialMenu.importMenu(ctx, false, "test");
+        assertEquals(0, again.added);
+        int sized = 0;
+        for (Product p : catalog.products(0, true)) {
+            if (p.hasSizes()) {
+                sized++;
+                assertEquals(3, p.activeSizes().size());
+            }
+        }
+        assertEquals(5, sized);
+        assertEquals(OfficialMenu.itemCount(), catalog.products(0, true).size());
+    }
+
+    @Test
     public void pinsAreHashedAndVerified() {
         assertTrue(users.verify(manager.id, "9999"));
         assertFalse(users.verify(manager.id, "0000"));

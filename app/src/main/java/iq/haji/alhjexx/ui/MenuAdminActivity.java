@@ -18,6 +18,7 @@ import iq.haji.alhjexx.R;
 import iq.haji.alhjexx.core.AppException;
 import iq.haji.alhjexx.core.Money;
 import iq.haji.alhjexx.data.CatalogRepo;
+import iq.haji.alhjexx.data.OfficialMenu;
 import iq.haji.alhjexx.model.Category;
 import iq.haji.alhjexx.model.Product;
 import iq.haji.alhjexx.model.ProductSize;
@@ -47,6 +48,7 @@ public class MenuAdminActivity extends PageActivity {
         repo = new CatalogRepo(this);
         addAction("＋ قسم", false, this::addCategory);
         addAction("＋ صنف", true, () -> editProduct(null));
+        addAction("⬇ القائمة الرسمية", false, this::importOfficial);
 
         LinearLayout row = new LinearLayout(this);
         row.setOrientation(LinearLayout.HORIZONTAL);
@@ -140,6 +142,32 @@ public class MenuAdminActivity extends PageActivity {
             }
         }
         productAdapter.set(pr);
+    }
+
+    // ---------------- القائمة الرسمية ----------------
+
+    private void importOfficial() {
+        Ui.show(Ui.dialog(this, "استيراد قائمة مطعم الحجي")
+                .setMessage(OfficialMenu.sectionCount() + " قسماً و" + OfficialMenu.itemCount()
+                        + " صنفاً بأسعار القائمة الرسمية (البيتزا بأحجامها).\n\n"
+                        + "• «استبدال»: تُخفى الأصناف والأقسام الحالية وتبقى القائمة الرسمية فقط. لا يُحذف شيء.\n"
+                        + "• «إضافة فقط»: تبقى الأصناف الحالية وتُضاف القائمة بجانبها.\n\n"
+                        + "الأصناف الموجودة بنفس الاسم والسعر لا تتكرر.")
+                .setPositiveButton("استبدال", (d, w) -> runImport(true))
+                .setNeutralButton("إضافة فقط", (d, w) -> runImport(false))
+                .setNegativeButton(R.string.cancel, null));
+    }
+
+    private void runImport(boolean replace) {
+        try {
+            OfficialMenu.Result r = OfficialMenu.importMenu(this, replace, Session.actor());
+            selectedCat = 0;
+            reload();
+            Ui.toast(this, "تم الاستيراد: أُضيف " + r.added + " صنفاً"
+                    + (r.alreadyPresent > 0 ? "، وكان " + r.alreadyPresent + " موجوداً" : ""));
+        } catch (RuntimeException e) {
+            Ui.error(this, "تعذر الاستيراد: " + e.getMessage());
+        }
     }
 
     // ---------------- الأقسام ----------------

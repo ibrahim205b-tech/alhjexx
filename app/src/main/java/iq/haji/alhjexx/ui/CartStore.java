@@ -27,6 +27,7 @@ final class CartStore {
             j.put("table", cart.tableLabel);
             j.put("dtype", cart.discountType);
             j.put("dvalue", cart.discountValue);
+            j.put("service", cart.serviceFee);
             JSONArray arr = new JSONArray();
             for (CartLine l : cart.lines) {
                 JSONObject o = new JSONObject();
@@ -60,6 +61,7 @@ final class CartStore {
             cart.tableLabel = j.optString("table", "");
             cart.discountType = j.optString("dtype", cart.discountType);
             cart.discountValue = j.optLong("dvalue", 0);
+            cart.serviceFee = Math.max(0, j.optLong("service", 0));
             JSONArray arr = j.optJSONArray("lines");
             if (arr != null) {
                 for (int i = 0; i < arr.length(); i++) {

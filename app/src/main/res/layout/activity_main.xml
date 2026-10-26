@@ -175,6 +175,18 @@
                     android:textStyle="bold" />
             </LinearLayout>
 
+            <!-- خدمة الصالة: تضيف المبلغ المحدد في الإعدادات (2000 د.ع افتراضياً) إلى الطلب والوصل -->
+            <TextView
+                android:id="@+id/btnService"
+                android:layout_width="match_parent"
+                android:layout_height="40dp"
+                android:layout_marginTop="6dp"
+                android:background="@drawable/segment"
+                android:gravity="center"
+                android:textColor="@color/white"
+                android:textSize="14sp"
+                android:textStyle="bold" />
+
             <TextView
                 android:id="@+id/tvTable"
                 android:layout_width="match_parent"
@@ -262,6 +274,29 @@
                         android:layout_width="wrap_content"
                         android:layout_height="wrap_content"
                         android:textColor="@color/success"
+                        android:textSize="13sp" />
+                </LinearLayout>
+
+                <LinearLayout
+                    android:id="@+id/rowService"
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:orientation="horizontal"
+                    android:visibility="gone">
+
+                    <TextView
+                        android:layout_width="0dp"
+                        android:layout_height="wrap_content"
+                        android:layout_weight="1"
+                        android:text="خدمة الصالة"
+                        android:textColor="@color/text_2"
+                        android:textSize="13sp" />
+
+                    <TextView
+                        android:id="@+id/tvService"
+                        android:layout_width="wrap_content"
+                        android:layout_height="wrap_content"
+                        android:textColor="@color/warning"
                         android:textSize="13sp" />
                 </LinearLayout>
 

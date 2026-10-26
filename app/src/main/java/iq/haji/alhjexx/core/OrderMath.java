@@ -8,8 +8,9 @@ package iq.haji.alhjexx.core;
  * المجموع الفرعي = مجموع إجماليات الأسطر
  * الخصم الثابت   = القيمة المدخلة
  * الخصم بالنسبة  = floor(المجموع الفرعي × النسبة ÷ 100)   (تقريب للأسفل لصالح الزبون لا يتجاوز الإجمالي)
- * الإجمالي النهائي = المجموع الفرعي − مبلغ الخصم
+ * الإجمالي النهائي = المجموع الفرعي − مبلغ الخصم + خدمة الصالة
  * </pre>
+ * الخصم يُحسب على الأصناف فقط، وخدمة الصالة مبلغ ثابت يُضاف بعده.
  */
 public final class OrderMath {
 
@@ -60,7 +61,14 @@ public final class OrderMath {
     }
 
     public static long total(long subtotal, long discountAmount) {
-        long t = subtotal - discountAmount;
+        return total(subtotal, discountAmount, 0);
+    }
+
+    public static long total(long subtotal, long discountAmount, long serviceFee) {
+        if (serviceFee < 0) {
+            throw new IllegalArgumentException("خدمة الصالة لا يمكن أن تكون سالبة");
+        }
+        long t = subtotal - discountAmount + serviceFee;
         if (t < 0) {
             throw new IllegalArgumentException("الإجمالي لا يمكن أن يكون سالباً");
         }

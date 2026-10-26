@@ -74,6 +74,9 @@ public final class Templates {
                     ? "الخصم (" + o.discountValue + "%):" : "الخصم:";
             d.pair(label, "- " + Money.format(o.discountAmount), NORMAL, false);
         }
+        if (o.serviceFee > 0) {
+            d.pair("خدمة الصالة:", Money.format(o.serviceFee), NORMAL, false);
+        }
         d.boxStart();
         d.center("المبلغ النهائي", NORMAL, true);
         d.center(Money.format(o.total), HUGE, true);
@@ -107,6 +110,9 @@ public final class Templates {
         d.dashed();
         d.pair("إجمالي المبيعات:", Money.format(s.gross), NORMAL, false);
         d.pair("الخصومات (" + s.discountedOrders + "):", "- " + Money.format(s.discounts), NORMAL, false);
+        if (s.serviceFees > 0) {
+            d.pair("خدمة الصالة (" + s.serviceOrders + "):", "+ " + Money.format(s.serviceFees), NORMAL, false);
+        }
         d.pair("صافي المبيعات:", Money.format(s.net), NORMAL, true);
         d.dashed();
         d.pair("نقداً:", Money.format(s.salesCash), SMALL, false);
@@ -328,6 +334,7 @@ public final class Templates {
         cmp(d, cols, "سفري", a.takeawayTotal, b.takeawayTotal);
         cmp(d, cols, "إجمالي المبيعات", a.gross, b.gross);
         cmp(d, cols, "الخصومات", a.discounts, b.discounts);
+        cmp(d, cols, "خدمة الصالة", a.serviceFees, b.serviceFees);
         cmp(d, cols, "صافي المبيعات", a.net, b.net);
         cmp(d, cols, "نقداً", a.salesCash, b.salesCash);
         cmp(d, cols, "إلكتروني", a.salesCard, b.salesCard);

@@ -31,7 +31,7 @@ public final class OrderRepo {
 
     private static final String COLS = "o.id,o.uuid,o.invoice_no,o.shift_id,s.shift_no,o.user_id,o.cashier_name,"
             + "o.order_type,o.table_label,o.status,o.subtotal,o.discount_type,o.discount_value,"
-            + "o.discount_amount,o.total,o.created_at,o.print_count";
+            + "o.discount_amount,o.total,o.created_at,o.print_count,o.service_fee";
 
     private final Context ctx;
 
@@ -92,6 +92,8 @@ public final class OrderRepo {
         }
         validate(cart);
         long subtotal = cart.subtotal();
+        long service = OrderType.DINE_IN.equals(cart.type) ? Math.max(0, cart.serviceFee) : 0;
+        cart.serviceFee = service;
         long discount;
         long total;
         try {
@@ -131,6 +133,7 @@ public final class OrderRepo {
             o.put("discount_type", discount > 0 ? cart.discountType : OrderMath.DISCOUNT_NONE);
             o.put("discount_value", discount > 0 ? cart.discountValue : 0);
             o.put("discount_amount", discount);
+            o.put("service_fee", service);
             o.put("total", total);
             o.put("created_at", now);
             long orderId = db.insertOrThrow("orders", null, o);
@@ -193,6 +196,7 @@ public final class OrderRepo {
         o.total = c.getLong(14);
         o.createdAt = c.getLong(15);
         o.printCount = c.getInt(16);
+        o.serviceFee = c.getLong(17);
         return o;
     }
 
